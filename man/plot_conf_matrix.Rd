@@ -4,7 +4,13 @@
 \alias{plot_conf_matrix}
 \title{Plot a Confusion Matrix Heatmap}
 \usage{
-plot_conf_matrix(conf_mat)
+plot_conf_matrix(
+  conf_mat,
+  title = "Confusion Matrix",
+  palette = "YlOrRd",
+  class_one = "Class1",
+  class_two = "Class2"
+)
 }
 \arguments{
 \item{conf_mat}{A list-like object. This object is expected to have an element
@@ -13,6 +19,14 @@ named "table". \code{conf_mat$table} should be a \code{table} object or a matrix
 columns for predicted values, actual values, and a column of counts (typically
 named 'n' if \code{conf_mat$table} is a \code{table} object).
 The function assumes the classes are "nondiabetic" and "diabetic".}
+
+\item{title}{A character string for the title of the plot. Default is "Confusion Matrix".}
+
+\item{palette}{A character string specifying the color palette to use for the heatmap. Default is "YlOrRd". Additional palettes avaliable via \code{RColorBrewer::display.brewer.all(type = "seq")}.}
+
+\item{class_one}{A character string for the first class label. Default is "Class1".}
+
+\item{class_two}{A character string for the second class label. Default is "Class2".}
 }
 \value{
 A ggplot object representing the confusion matrix heatmap.
@@ -22,4 +36,24 @@ This function takes a confusion matrix object (e.g., from \code{caret::confusion
 or a similar structure containing a table of predictions versus actuals,
 and generates a visually appealing heatmap using ggplot2.
 It displays counts in each cell and uses percentages for fill intensity.
+}
+\examples{
+# Ensure modeldata and yardstick are available for the example
+if (rlang::is_installed("modeldata") && rlang::is_installed("yardstick")) {
+  data("two_class_example", package = "modeldata")
+  cm <-
+    yardstick::conf_mat(
+      two_class_example,
+      truth = truth, # 'truth' is a column name in two_class_example
+      estimate = predicted # 'predicted' is a column name in two_class_example
+    )
+  plot_conf_matrix(cm,
+                   title = "Sample Confusion Matrix",
+                   palette = "Blues",
+                   class_one = "Class1", # Matches levels in two_class_example
+                   class_two = "Class2"  # Matches levels in two_class_example
+                  )
+}
+
+
 }

@@ -19,7 +19,10 @@ Imports:
     dplyr,
     ggplot2,
     rlang,
-    tibble
+    tibble,
+    yardstick
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/RobWiederstein/mithril, https://robwiederstein.github.io/mithril/
 BugReports: https://github.com/RobWiederstein/mithril/issues
+Suggests: 
+    modeldata

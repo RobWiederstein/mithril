@@ -12,15 +12,49 @@
 #'   named 'n' if `conf_mat$table` is a `table` object).
 #'   The function assumes the classes are "nondiabetic" and "diabetic".
 #'
+#' @param title A character string for the title of the plot. Default is "Confusion Matrix".
+#'
+#' @param palette A character string specifying the color palette to use for the heatmap. Default is "YlOrRd". Additional palettes avaliable via `RColorBrewer::display.brewer.all(type = "seq")`.
+#'
+#' @param class_one A character string for the first class label. Default is "Class1".
+#'
+#' @param class_two A character string for the second class label. Default is "Class2".
+#'
 #' @return A ggplot object representing the confusion matrix heatmap.
 #'
 #' @importFrom dplyr %>% mutate rename
 #' @importFrom tibble as_tibble
 #' @importFrom ggplot2 ggplot aes geom_tile geom_label scale_fill_distiller theme_minimal scale_x_discrete theme element_text element_blank
 #' @importFrom rlang .data sym
+#' @importFrom yardstick conf_mat
+#'
+#' @examples
+#' # Ensure modeldata and yardstick are available for the example
+#' if (rlang::is_installed("modeldata") && rlang::is_installed("yardstick")) {
+#'   data("two_class_example", package = "modeldata")
+#'   cm <-
+#'     yardstick::conf_mat(
+#'       two_class_example,
+#'       truth = truth, # 'truth' is a column name in two_class_example
+#'       estimate = predicted # 'predicted' is a column name in two_class_example
+#'     )
+#'   plot_conf_matrix(cm,
+#'                    title = "Sample Confusion Matrix",
+#'                    palette = "Blues",
+#'                    class_one = "Class1", # Matches levels in two_class_example
+#'                    class_two = "Class2"  # Matches levels in two_class_example
+#'                   )
+#' }
+#'
 #'
 #' @export
-plot_conf_matrix <- function(conf_mat) {
+plot_conf_matrix <- function(
+    conf_mat,
+    title = "Confusion Matrix",
+    palette = "YlOrRd",
+    class_one = "Class1",
+    class_two = "Class2"
+    ) {
   # Validate input structure
   if (!is.list(conf_mat) || !("table" %in% names(conf_mat))) {
     stop("'conf_mat' must be a list with an element named 'table'.", call. = FALSE)
@@ -29,57 +63,31 @@ plot_conf_matrix <- function(conf_mat) {
   # Convert the input table to a tibble
   conf_df_raw <- tibble::as_tibble(conf_mat[["table"]])
 
-  # Identify and rename the count column (usually 'n' or 'Freq')
-  if ("n" %in% names(conf_df_raw)) {
-    conf_df <- dplyr::rename(conf_df_raw, count_col = .data$n)
-  } else if ("Freq" %in% names(conf_df_raw)) {
-    conf_df <- dplyr::rename(conf_df_raw, count_col = .data$Freq)
-  } else if (ncol(conf_df_raw) >= 3 && is.numeric(conf_df_raw[[3]])){
-    warning("Count column not named 'n' or 'Freq'. Assuming the third column contains counts.")
-    count_col_name <- names(conf_df_raw)[3]
-    conf_df <- dplyr::rename(conf_df_raw, count_col = !!sym(count_col_name))
-  } else {
-    stop("Could not find a suitable count column in conf_mat$table.", call. = FALSE)
-  }
-
   # Calculate total and percentage for heatmap fill
-  conf_df <- conf_df %>%
-    dplyr::mutate(total = sum(.data$count_col)) %>%
-    dplyr::mutate(pct = .data$count_col / .data$total)
+  conf_df <- conf_df_raw %>%
+    dplyr::mutate(total = sum(.data$n)) %>%
+    dplyr::mutate(pct = .data$n / .data$total)
 
   # Rename dimension columns to 'Predicted' and 'Actual'
-  if (ncol(conf_df) >= 2) {
     names(conf_df)[1] <- "Predicted"
     names(conf_df)[2] <- "Actual"
-  } else {
-    stop("The confusion matrix table does not have at least two dimension columns.", call. = FALSE)
-  }
 
   # Define and apply factor levels for consistent plotting order
-  expected_levels <- c("nondiabetic", "diabetic")
+  expected_levels <- c(class_one, class_two)
   current_pred_levels <- unique(as.character(conf_df$Predicted))
   current_act_levels <- unique(as.character(conf_df$Actual))
 
-  if (!all(current_pred_levels %in% expected_levels)) {
-    warning("Unexpected levels in 'Predicted' column: ",
-            paste(setdiff(current_pred_levels, expected_levels), collapse=", "))
-  }
-  if (!all(current_act_levels %in% expected_levels)) {
-    warning("Unexpected levels in 'Actual' column: ",
-            paste(setdiff(current_act_levels, expected_levels), collapse=", "))
-  }
-
   conf_df$Predicted <- factor(conf_df$Predicted, levels = expected_levels)
-  conf_df$Actual <- factor(conf_df$Actual, levels = rev(expected_levels)) # Reversed for typical display
+  conf_df$Actual <- factor(conf_df$Actual, levels = rev(expected_levels))
 
   # Create the heatmap with ggplot2
   p <- ggplot(conf_df, aes(x = .data$Predicted, y = .data$Actual, fill = .data$pct)) +
     geom_tile(color = "white", linewidth = 0.5) +
-    geom_label(aes(label = .data$count_col), vjust = 0.5, hjust = 0.5, size = 8, fill = "white", label.padding = ggplot2::unit(0.15, "lines")) +
-    scale_fill_distiller(palette = "YlOrRd", type = "seq", direction = 1, name = "Percentage") +
+    geom_label(aes(label = .data$n), vjust = 0.5, hjust = 0.5, size = 8, fill = "white", label.padding = ggplot2::unit(0.15, "lines")) +
+    scale_fill_distiller(palette = palette, type = "seq", direction = 1, name = "Percentage") +
     theme_minimal(base_size = 12) +
     scale_x_discrete(position = "top") +
-    ggplot2::labs(x = "Predicted Label", y = "Actual Label", title = "Confusion Matrix") +
+    ggplot2::labs(x = "Predicted", y = "Actual", title = title) +
     theme(
       axis.text.x = element_text(hjust = 0.5, vjust = 0.5, size = ggplot2::rel(1.1)),
       axis.text.x.top = element_text(vjust = 0.5, margin = ggplot2::margin(b = 10)),
@@ -91,5 +99,6 @@ plot_conf_matrix <- function(conf_mat) {
       panel.grid.minor = element_blank(),
       aspect.ratio = 1
     )
+  p
   return(p)
 }
