@@ -17,6 +17,15 @@ Currently, it includes a function to plot confusion matrices.
 }
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/RobWiederstein/mithril}
+  \item \url{https://robwiederstein.github.io/mithril/}
+  \item Report bugs at \url{https://github.com/RobWiederstein/mithril/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Rob Wiederstein \email{khuon68@gmail.com}
 
