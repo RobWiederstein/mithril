@@ -21,3 +21,5 @@ Imports:
     rlang,
     tibble
 Roxygen: list(markdown = TRUE)
+URL: https://github.com/RobWiederstein/mithril
+BugReports: https://github.com/RobWiederstein/mithril/issues
