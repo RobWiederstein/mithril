@@ -1,0 +1,23 @@
+Package: mithril
+Type: Package
+Title: Holds My Personal Functions
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Rob", "Wiederstein",
+      email = "khuon68@gmail.com",
+      role = c("aut", "cre")
+    )
+  )
+Description: The package includes in function form
+  code that has been used in previous projects.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Imports: 
+    dplyr,
+    ggplot2,
+    rlang,
+    tibble
+Roxygen: list(markdown = TRUE)
